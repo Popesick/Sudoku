@@ -252,8 +252,8 @@
     line-height: 1;
     pointer-events: none;
   }
-  .cell-note.note-left{ top: 5px; left: 6px; }
-  .cell-note.note-right{ top: 5px; right: 6px; }
+  .cell-note.note-left{ top: 5px; left: 11px; }
+  .cell-note.note-right{ top: 5px; right: 11px; }
 
   #notesHint{
     text-align: center;
@@ -385,6 +385,40 @@
     font-size: 14px;
     margin: 0 0 20px;
     line-height: 1.5;
+  }
+
+  #notesConfirmOverlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(36,48,61,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 21;
+    padding: 24px;
+  }
+  #notesConfirmCard{
+    background: var(--paper-raised);
+    border: 2px solid var(--ink);
+    padding: 28px 26px;
+    max-width: 340px;
+    text-align: center;
+  }
+  #notesConfirmCard h2{
+    font-family: var(--font-display);
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+  #notesConfirmCard p{
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+  .notes-confirm-actions{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   /* ---------- Install banners (iOS + Android) ---------- */
@@ -599,6 +633,17 @@
   </div>
 </div>
 
+<div id="notesConfirmOverlay" class="hidden">
+  <div id="notesConfirmCard">
+    <h2>Nicht vollständig ausgefüllt</h2>
+    <p>Du hast nicht alle Felder befüllt. Sollen die Notizen übernommen werden?</p>
+    <div class="notes-confirm-actions">
+      <button class="action-btn" id="notesConfirmNo">Nein</button>
+      <button class="action-btn primary" id="notesConfirmYes">Ja, übernehmen</button>
+    </div>
+  </div>
+</div>
+
 <div id="iosInstallOverlay" class="hidden">
   <div class="ios-install-card">
     <h2>Als App installieren</h2>
@@ -756,6 +801,9 @@
     winOverlay: document.getElementById('winOverlay'),
     winTime: document.getElementById('winTime'),
     winNewGameBtn: document.getElementById('winNewGameBtn'),
+    notesConfirmOverlay: document.getElementById('notesConfirmOverlay'),
+    notesConfirmYes: document.getElementById('notesConfirmYes'),
+    notesConfirmNo: document.getElementById('notesConfirmNo'),
     iosBanner: document.getElementById('iosBanner'),
     iosBannerOpen: document.getElementById('iosBannerOpen'),
     iosBannerClose: document.getElementById('iosBannerClose'),
@@ -1011,9 +1059,17 @@
     return true;
   }
 
-  el.checkBtn.addEventListener('click', () => {
+  function hasSingleNoteCandidates(){
+    return state.board.some((v, i) => v === 0 && (state.notes[i] || []).length === 1);
+  }
+
+  function runCheck(){
     if(!isBoardFull()){
-      setMessage("Noch nicht vollständig – füll erst alle Felder aus.", "info");
+      if(hasSingleNoteCandidates()){
+        el.notesConfirmOverlay.classList.remove('hidden');
+      } else {
+        setMessage("Noch nicht vollständig – füll erst alle Felder aus.", "info");
+      }
       return;
     }
     if(isBoardCorrect()){
@@ -1021,6 +1077,28 @@
     } else {
       setMessage("Leider nicht korrekt gelöst.", "bad");
     }
+  }
+
+  el.checkBtn.addEventListener('click', runCheck);
+
+  el.notesConfirmNo.addEventListener('click', () => {
+    el.notesConfirmOverlay.classList.add('hidden');
+  });
+
+  el.notesConfirmYes.addEventListener('click', () => {
+    el.notesConfirmOverlay.classList.add('hidden');
+    for(let i=0;i<81;i++){
+      if(state.board[i] === 0){
+        const notes = state.notes[i] || [];
+        if(notes.length === 1){
+          state.board[i] = notes[0];
+          state.notes[i] = [];
+        }
+      }
+    }
+    renderBoard();
+    save();
+    runCheck();
   });
 
   el.hintBtn.addEventListener('click', () => {
