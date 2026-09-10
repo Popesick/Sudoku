@@ -1,5 +1,5 @@
-const CACHE_NAME = 'sudoku-cache-v2';
-const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './hirsch.png'];
+const CACHE_NAME = 'sudoku-cache-v3';
+const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './icon-512-maskable.png', './hirsch.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
