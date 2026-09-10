@@ -206,8 +206,6 @@
   }
   .cell.col-3n{ border-right: 2.5px solid var(--ink); }
   .cell.row-3n{ border-bottom: 2.5px solid var(--ink); }
-  .cell.col-0{ border-left: none; }
-  .cell.row-0{ border-top: none; }
 
   .cell.peer{ background: rgba(47,111,94,0.06); }
   .cell.peer-num{ background: var(--accent-soft); }
@@ -543,10 +541,8 @@
       for(let c=0;c<9;c++){
         const d = document.createElement('div');
         d.className = 'cell';
-        if(c % 3 === 0) d.classList.add('col-3n');
-        if(r % 3 === 0) d.classList.add('row-3n');
-        if(c === 0) d.classList.add('col-0');
-        if(r === 0) d.classList.add('row-0');
+        if(c % 3 === 2 && c !== 8) d.classList.add('col-3n');
+        if(r % 3 === 2 && r !== 8) d.classList.add('row-3n');
         d.dataset.pos = idx(r,c);
         d.addEventListener('click', onCellClick);
         el.board.appendChild(d);
