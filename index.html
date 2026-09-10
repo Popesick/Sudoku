@@ -366,6 +366,109 @@
     margin: 0 0 20px;
     line-height: 1.5;
   }
+
+  /* ---------- iOS install banner ---------- */
+  #iosBanner{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: var(--gold-soft);
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    padding: 4px 4px 4px 6px;
+    margin-bottom: 14px;
+  }
+  #iosBannerOpen{
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    padding: 8px 6px;
+  }
+  #iosBannerOpen svg{ flex-shrink: 0; }
+  #iosBannerOpen .chevron{
+    margin-left: auto;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+  #iosBannerClose{
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 8px;
+    flex-shrink: 0;
+  }
+
+  #iosInstallOverlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(36,48,61,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+    padding: 24px;
+  }
+  .ios-install-card{
+    background: var(--paper-raised);
+    border: 2px solid var(--ink);
+    padding: 26px 24px;
+    max-width: 360px;
+    width: 100%;
+  }
+  .ios-install-card h2{
+    font-family: var(--font-display);
+    font-size: 21px;
+    margin: 0 0 18px;
+  }
+  .ios-steps{
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .ios-steps li{
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .ios-step-icon{
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--accent);
+  }
+  .ios-note{
+    font-size: 12px;
+    color: var(--error);
+    border-top: 1px dashed var(--rule);
+    padding-top: 12px;
+    margin: 0 0 18px;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
@@ -375,6 +478,19 @@
     <h1>Sudoku</h1>
     <div class="meta" id="headerMeta"></div>
   </header>
+
+  <div id="iosBanner" class="hidden">
+    <button id="iosBannerOpen">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 16V4"/>
+        <path d="M7 8l5-5 5 5"/>
+        <rect x="5" y="12" width="14" height="8" rx="1.5"/>
+      </svg>
+      <span>Auf iPhone/iPad installieren</span>
+      <span class="chevron">›</span>
+    </button>
+    <button id="iosBannerClose" aria-label="Hinweis schließen">✕</button>
+  </div>
 
   <!-- Difficulty picker -->
   <section id="picker" class="screen">
@@ -445,6 +561,39 @@
     <h2>Richtig gelöst!</h2>
     <p id="winTime">Zeit: 00:00</p>
     <button class="action-btn primary" id="winNewGameBtn" style="width:100%">Neues Rätsel</button>
+  </div>
+</div>
+
+<div id="iosInstallOverlay" class="hidden">
+  <div class="ios-install-card">
+    <h2>Als App installieren</h2>
+    <ol class="ios-steps">
+      <li>
+        <span class="ios-step-icon">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 16V4"/>
+            <path d="M7 8l5-5 5 5"/>
+            <rect x="5" y="12" width="14" height="8" rx="1.5"/>
+          </svg>
+        </span>
+        <span>Tippe unten (iPhone) bzw. oben (iPad) in Safari auf das <strong>Teilen</strong>-Symbol.</span>
+      </li>
+      <li>
+        <span class="ios-step-icon">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="3"/>
+            <path d="M12 8v8M8 12h8"/>
+          </svg>
+        </span>
+        <span>Im Menü <strong>„Zum Home-Bildschirm“</strong> wählen (ggf. nach unten scrollen).</span>
+      </li>
+      <li>
+        <span class="ios-step-icon">✓</span>
+        <span>Oben rechts auf <strong>„Hinzufügen“</strong> tippen – fertig!</span>
+      </li>
+    </ol>
+    <p class="ios-note" id="iosSafariNote">Das funktioniert nur im Safari-Browser. Bitte diese Seite in Safari öffnen, andere Browser bieten „Zum Home-Bildschirm“ auf iOS nicht an.</p>
+    <button class="action-btn primary" id="iosInstallClose" style="width:100%">Verstanden</button>
   </div>
 </div>
 
@@ -571,7 +720,13 @@
     resumeBtn: document.getElementById('resumeBtn'),
     winOverlay: document.getElementById('winOverlay'),
     winTime: document.getElementById('winTime'),
-    winNewGameBtn: document.getElementById('winNewGameBtn')
+    winNewGameBtn: document.getElementById('winNewGameBtn'),
+    iosBanner: document.getElementById('iosBanner'),
+    iosBannerOpen: document.getElementById('iosBannerOpen'),
+    iosBannerClose: document.getElementById('iosBannerClose'),
+    iosInstallOverlay: document.getElementById('iosInstallOverlay'),
+    iosInstallClose: document.getElementById('iosInstallClose'),
+    iosSafariNote: document.getElementById('iosSafariNote')
   };
 
   const cellEls = [];
@@ -847,8 +1002,47 @@
     }
   });
 
+  /* ============ iOS install banner ============ */
+  const IOS_BANNER_DISMISS_KEY = "sudoku-ios-banner-dismissed";
+
+  function isIOSDevice(){
+    const ua = navigator.userAgent;
+    const isAppleTouch = /iPad|iPhone|iPod/.test(ua);
+    const isIpadDesktopMode = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    return isAppleTouch || isIpadDesktopMode;
+  }
+
+  function isSafariBrowser(){
+    const ua = navigator.userAgent;
+    return /^((?!chrome|android|crios|fxios|edgios|opios|opt).)*safari/i.test(ua);
+  }
+
+  function isStandaloneMode(){
+    return window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  }
+
+  function initIosInstallBanner(){
+    if(!isIOSDevice() || isStandaloneMode()) return;
+    if(localStorage.getItem(IOS_BANNER_DISMISS_KEY) === '1') return;
+    el.iosSafariNote.classList.toggle('hidden', isSafariBrowser());
+    el.iosBanner.classList.remove('hidden');
+  }
+
+  el.iosBannerOpen.addEventListener('click', () => {
+    el.iosInstallOverlay.classList.remove('hidden');
+  });
+  el.iosBannerClose.addEventListener('click', () => {
+    el.iosBanner.classList.add('hidden');
+    localStorage.setItem(IOS_BANNER_DISMISS_KEY, '1');
+  });
+  el.iosInstallClose.addEventListener('click', () => {
+    el.iosInstallOverlay.classList.add('hidden');
+  });
+
   /* ============ Boot ============ */
   checkResume();
+  initIosInstallBanner();
 
   /* ============ PWA service worker ============ */
   if('serviceWorker' in navigator){
