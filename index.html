@@ -291,8 +291,12 @@
   .action-btn:disabled{ opacity: 0.4; pointer-events: none; }
   .action-btn .sub{ display: block; font-size: 11px; font-weight: 500; opacity: 0.85; margin-top: 2px; }
 
-  #newGameBtn{
-    width: 100%;
+  #bottomActions{
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+  }
+  .link-btn{
     background: none;
     border: none;
     color: var(--ink-soft);
@@ -394,7 +398,10 @@
       <button class="action-btn primary" id="checkBtn">Prüfen<span class="sub">löst das Rätsel?</span></button>
     </div>
 
-    <button id="newGameBtn">Neues Spiel / anderer Schwierigkeitsgrad</button>
+    <div id="bottomActions">
+      <button id="resetBtn" class="link-btn">Zurücksetzen</button>
+      <button id="newGameBtn" class="link-btn">Neues Spiel</button>
+    </div>
   </section>
 
 </div>
@@ -525,6 +532,7 @@
     checkBtn: document.getElementById('checkBtn'),
     headerMeta: document.getElementById('headerMeta'),
     newGameBtn: document.getElementById('newGameBtn'),
+    resetBtn: document.getElementById('resetBtn'),
     resumeRow: document.getElementById('resumeRow'),
     resumeBtn: document.getElementById('resumeBtn'),
     winOverlay: document.getElementById('winOverlay'),
@@ -649,17 +657,50 @@
       cellEls[pos].classList.remove('selected','peer','peer-num');
     }
     if(sel === null) return;
-    const r = (sel/9)|0, c = sel%9, b = boxIdx(r,c);
+    cellEls[sel].classList.add('selected');
+
+    const level = state.level;
     const selNum = state.board[sel];
-    for(let pos=0; pos<81; pos++){
-      const pr = (pos/9)|0, pc = pos%9, pb = boxIdx(pr,pc);
-      if(pos === sel){
-        cellEls[pos].classList.add('selected');
-      } else if(pr === r || pc === c || pb === b){
-        cellEls[pos].classList.add('peer');
+
+    // Cells that currently hold the same number as the selected cell.
+    const sameNumberPositions = [];
+    if(selNum !== 0){
+      for(let pos=0; pos<81; pos++){
+        if(state.board[pos] === selNum) sameNumberPositions.push(pos);
       }
-      if(selNum !== 0 && state.board[pos] === selNum){
-        cellEls[pos].classList.add('peer-num');
+    }
+
+    // Easy + Medium: mark every cell with the same number. Hard: no marking.
+    if((level === 'easy' || level === 'medium') && selNum !== 0){
+      for(const pos of sameNumberPositions){
+        if(pos !== sel) cellEls[pos].classList.add('peer-num');
+      }
+    }
+
+    // Guide lines (row/column/box):
+    // Easy -> shown for the selected cell AND every same-number cell.
+    // Medium -> shown only for the selected cell (current/default behaviour).
+    // Hard -> not shown at all.
+    let guideSources = [];
+    if(level === 'easy'){
+      guideSources = sameNumberPositions.length ? sameNumberPositions.slice() : [sel];
+      if(!guideSources.includes(sel)) guideSources.push(sel);
+    } else if(level === 'medium'){
+      guideSources = [sel];
+    }
+
+    if(guideSources.length){
+      const rows = new Set(), cols = new Set(), boxes = new Set();
+      for(const p of guideSources){
+        const pr = (p/9)|0, pc = p%9;
+        rows.add(pr); cols.add(pc); boxes.add(boxIdx(pr,pc));
+      }
+      for(let pos=0; pos<81; pos++){
+        if(pos === sel) continue;
+        const pr = (pos/9)|0, pc = pos%9, pb = boxIdx(pr,pc);
+        if(rows.has(pr) || cols.has(pc) || boxes.has(pb)){
+          cellEls[pos].classList.add('peer');
+        }
       }
     }
   }
@@ -744,6 +785,17 @@
   });
 
   el.newGameBtn.addEventListener('click', openPicker);
+
+  el.resetBtn.addEventListener('click', () => {
+    if(!state) return;
+    for(let i=0;i<81;i++){
+      if(!state.given[i]) state.board[i] = 0;
+    }
+    state.selected = null;
+    renderBoard();
+    setMessage("Alle Eingaben zurückgesetzt.", "info");
+    save();
+  });
   el.winNewGameBtn.addEventListener('click', () => {
     el.winOverlay.classList.add('hidden');
     openPicker();
