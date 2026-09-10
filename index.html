@@ -243,6 +243,26 @@
 
   .cell.wrong-flash{ background: var(--error-soft) !important; color: var(--error) !important; }
 
+  .cell-note{
+    position: absolute;
+    font-family: var(--font-ui);
+    font-size: clamp(10px, 2.6vw, 13px);
+    font-weight: 700;
+    color: var(--ink-soft);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .cell-note.note-left{ top: 5px; left: 6px; }
+  .cell-note.note-right{ top: 5px; right: 6px; }
+
+  #notesHint{
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
   @keyframes pulse{
     0%{ background: var(--accent-soft); }
     50%{ background: var(--gold-soft); }
@@ -543,6 +563,8 @@
 
     <div id="message" class="info">&nbsp;</div>
 
+    <p id="notesHint">Zweimal gleiche Zahl in einem Feld hinterlegt eine Erinnerung. Es sind zwei Erinnerungen möglich. Mit Löschen entfernen.</p>
+
     <div id="numpad">
       <button class="num-btn" data-num="1">1</button>
       <button class="num-btn" data-num="2">2</button>
@@ -757,6 +779,10 @@
         if(c % 3 === 2 && c !== 8) d.classList.add('col-3n');
         if(r % 3 === 2 && r !== 8) d.classList.add('row-3n');
         d.dataset.pos = idx(r,c);
+        d.innerHTML =
+          '<span class="cell-value"></span>' +
+          '<span class="cell-note note-left"></span>' +
+          '<span class="cell-note note-right"></span>';
         d.addEventListener('click', onCellClick);
         el.board.appendChild(d);
         cellEls.push(d);
@@ -801,7 +827,9 @@
       solution,
       given: puzzle.map(v => v !== 0),
       board: puzzle.slice(),
+      notes: new Array(81).fill(null).map(() => []),
       hintsLeft: 3,
+      lastHintBoardSnapshot: null,
       seconds: 0,
       selected: null
     };
@@ -809,7 +837,14 @@
     openGameScreen();
   }
 
+  function normalizeState(){
+    // Fills in fields that older saved games (before this feature existed) don't have yet.
+    if(!state.notes) state.notes = new Array(81).fill(null).map(() => []);
+    if(state.lastHintBoardSnapshot === undefined) state.lastHintBoardSnapshot = null;
+  }
+
   function openGameScreen(){
+    normalizeState();
     el.picker.classList.add('hidden');
     el.game.classList.remove('hidden');
     el.diffTag.textContent = DIFFICULTIES[state.level].label;
@@ -849,7 +884,10 @@
     for(let pos=0; pos<81; pos++){
       const d = cellEls[pos];
       const v = state.board[pos];
-      d.textContent = v === 0 ? "" : v;
+      const notes = state.notes[pos] || [];
+      d.querySelector('.cell-value').textContent = v === 0 ? "" : v;
+      d.querySelector('.note-left').textContent = notes[0] || "";
+      d.querySelector('.note-right').textContent = notes[1] || "";
       d.classList.toggle('given', state.given[pos]);
       d.classList.remove('wrong-flash');
     }
@@ -920,7 +958,30 @@
     if(!state || state.selected === null) return;
     const pos = state.selected;
     if(state.given[pos]) return;
-    state.board[pos] = n;
+
+    if(n === 0){
+      state.board[pos] = 0;
+      state.notes[pos] = [];
+    } else {
+      const notes = state.notes[pos] || [];
+      const hasValue = state.board[pos] !== 0;
+
+      if(hasValue && state.board[pos] === n){
+        // same number entered a second time -> turn it into a note (left corner)
+        state.board[pos] = 0;
+        state.notes[pos] = [n];
+      } else if(notes.length > 0){
+        // cell is already in note mode -> next number auto-fills the second note (right corner)
+        if(!notes.includes(n) && notes.length < 2){
+          state.notes[pos] = notes.concat([n]);
+        }
+      } else {
+        // normal entry
+        state.board[pos] = n;
+        state.notes[pos] = [];
+      }
+    }
+
     renderBoard();
     state.selected = pos;
     highlightSelection();
@@ -964,7 +1025,13 @@
 
   el.hintBtn.addEventListener('click', () => {
     if(state.hintsLeft <= 0) return;
+    const currentSnapshot = state.board.join(',');
+    if(state.lastHintBoardSnapshot !== null && currentSnapshot === state.lastHintBoardSnapshot){
+      setMessage("Erst etwas eintragen oder löschen, bevor du einen weiteren Tipp nutzt.", "info");
+      return;
+    }
     state.hintsLeft--;
+    state.lastHintBoardSnapshot = currentSnapshot;
     renderHints();
     let allCorrect = true;
     for(let i=0;i<81;i++){
@@ -994,7 +1061,10 @@
   el.resetBtn.addEventListener('click', () => {
     if(!state) return;
     for(let i=0;i<81;i++){
-      if(!state.given[i]) state.board[i] = 0;
+      if(!state.given[i]){
+        state.board[i] = 0;
+        state.notes[i] = [];
+      }
     }
     state.selected = null;
     renderBoard();
