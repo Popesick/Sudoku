@@ -151,6 +151,34 @@
     text-decoration: underline; text-underline-offset: 3px;
   }
 
+  #sponsor{
+    margin-top: 26px;
+    padding: 14px 4px 4px;
+    border-top: 1px dashed var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  #sponsor img{
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  #sponsor p{
+    margin: 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--gold);
+  }
+  #sponsor p strong{
+    font-style: normal;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
   /* ---------- Game screen ---------- */
   #game{ gap: 14px; }
 
@@ -364,6 +392,11 @@
     </button>
     <div id="resumeRow" class="hidden">
       Es gibt ein pausiertes Spiel. <button id="resumeBtn">Fortsetzen</button>
+    </div>
+
+    <div id="sponsor">
+      <img src="hirsch.png" alt="Imkerei Hirsch – Bayerischer Bienenhonig" loading="lazy">
+      <p><strong>Powered by Hirsch Honig.</strong> Der Hirsch unter den Honigen. Hirsch Honig. Für den vollen Honig-Geschmack. Nur von Hirsch. Kauft Hirsch Honig.</p>
     </div>
   </section>
 
